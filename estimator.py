@@ -56,7 +56,7 @@ default_skeleton = (
 
 
 class PoseEstimator(object):
-    def __init__(self, device_name):
+    def __init__(self, device_name="AUTO", video_url=""):
         # initialize inference engine
         ie_core = ie.IECore()
         # read the network and corresponding weights from file
@@ -72,7 +72,14 @@ class PoseEstimator(object):
         self.height, self.width = self.exec_net.input_info[
             self.input_key
         ].tensor_desc.dims[2:]
-        self.player = VideoPlayer(source=0, flip=False, fps=30, skip_first_frames=0)
+        if video_url == "":
+            source = 0
+        else:
+            source = video_url
+
+        self.player = VideoPlayer(
+            source=source, flip=False, fps=30, skip_first_frames=0
+        )
         self.decoder = OpenPoseDecoder()
 
         # start capturing
@@ -82,17 +89,14 @@ class PoseEstimator(object):
         self.player.stop()
 
     def get_frame(self, jpeg_encoding=False):
-        # jpeg = self._run_pose_estimation()
-        # return jpeg.tobytes()
         frame = self._run_pose_estimation()
         if jpeg_encoding:
             _, encoded_img = cv2.imencode(
-                    ".jpg", frame, params=[cv2.IMWRITE_JPEG_QUALITY, 90]
-                )
+                ".jpg", frame, params=[cv2.IMWRITE_JPEG_QUALITY, 90]
+            )
             return encoded_img.tobytes()
         else:
             return frame
-
 
     def _pool2d(self, A, kernel_size, stride, padding, pool_mode="max"):
         # Padding
@@ -201,7 +205,7 @@ class PoseEstimator(object):
 
         # draw poses on a frame
         frame = self._draw_poses(frame, poses, 0.1)
-        
+
         processing_times.append(stop_time - start_time)
         # use processing times from last 200 frames
         if len(processing_times) > 200:

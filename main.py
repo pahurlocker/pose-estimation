@@ -15,11 +15,25 @@ def gen(estimator):
         yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n\r\n")
 
 
-@app.route("/video_feed")
-def video_feed():
+@app.route("/camera_feed")
+def camera_feed():
     device_name = request.args.get("device_name", default="CPU")
     return Response(
         gen(PoseEstimator(device_name=device_name)),
+        mimetype="multipart/x-mixed-replace; boundary=frame",
+    )
+
+
+@app.route("/example_video")
+def example_video():
+    device_name = request.args.get("device_name", default="CPU")
+    return Response(
+        gen(
+            PoseEstimator(
+                device_name=device_name,
+                video_url="https://github.com/intel-iot-devkit/sample-videos/blob/master/store-aisle-detection.mp4?raw=true",
+            )
+        ),
         mimetype="multipart/x-mixed-replace; boundary=frame",
     )
 

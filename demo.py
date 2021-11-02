@@ -6,12 +6,18 @@ from estimator import PoseEstimator
 @click.command()
 @click.option(
     "--device-name",
-    help="device to run the network on, CPU or MYRIAD. Default is CPU",
+    help="device to run the network on, CPU, GPU, or MYRIAD. Default is CPU",
     default="CPU",
     type=str,
 )
-def main(device_name):
-    estimator = PoseEstimator(device_name=device_name)
+@click.option(
+    "--video-url",
+    help="use video instead of video camera, try https://github.com/intel-iot-devkit/sample-videos/blob/master/store-aisle-detection.mp4?raw=true. Default uses video camera",
+    default="",
+    type=str,
+)
+def main(device_name, video_url):
+    estimator = PoseEstimator(device_name=device_name, video_url=video_url)
     while True:
         frame = estimator.get_frame()
         title = "Press ESC to Exit"
