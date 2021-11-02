@@ -2,9 +2,11 @@
 
 ## Overview
 
-This application performs human pose estimation on a video stream using pre-trained human pose estimation models in the OpenVINO library. It can be run on a CPU or the Intel Neural Compute Stick 2.
+This application performs human pose estimation on a video stream using pre-trained human pose estimation models with the OpenVINO library. It can be run on a CPU or the Intel Neural Compute Stick 2 via the command line or a Flask-based web application.
 
 ## Setup
+
+### Python Dependencies
 
 ```
 python setup.py install

@@ -214,7 +214,7 @@ class PoseEstimator(object):
             frame,
             f"Inference time: {processing_time:.1f}ms",
             (20, 40),
-            cv2.FONT_HERSHEY_COMPLEX,
+            cv2.FONT_HERSHEY_SIMPLEX,
             f_width / 1000,
             (0, 0, 255),
             1,

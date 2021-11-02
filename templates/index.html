@@ -1,20 +1,27 @@
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+        integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
     <title>Pose Estimation</title>
-    <style>
-        img {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: 55%
-        }
-    </style>
 </head>
 
 <body>
-    <h1 align="center">Pose Estimation</h1>
-    <img id="bg" class="center" src="{{ url_for('video_feed') }}">
+    <nav class="navbar sticky-top navbar-light bg-light">
+        <div class="container-fluid">
+          <span class="navbar-brand mb-0 h1">Pose Estimation</span>
+        </div>
+    </nav>
+    <div class="container pt-3 my-3">
+        <img id="bg" class="rounded img-fluid" src="{{ url_for('video_feed') }}">
+    </div>
 </body>
 
 </html>
