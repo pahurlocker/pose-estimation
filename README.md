@@ -78,8 +78,8 @@ http://127.0.0.1:5000/detections?page=1&per-page=50
 
 ## References
 
-```link
 https://github.com/openvinotoolkit/openvino_notebooks/tree/main/notebooks/402-pose-estimation-webcam
+
 https://docs.openvino.ai/latest/index.html
-https://blog.tensorflow.org/2018/05/real-time-human-pose-estimation-in.html#:~:text=PoseNet%20can%20be%20used%20to,persons%20in%20an%20image%2Fvideo.&text=An%20input%20RGB%20image%20is%20fed%20through%20a%20convolutional%20neural%20network.
-```
+
+https://blog.tensorflow.org/2018/05/real-time-human-pose-estimation-in.html
