@@ -73,7 +73,7 @@ http://127.0.0.1:5000/?device-name=CPU (or GPU, MYRIAD, or AUTO (default) for In
 ## Detection event API
 
 ```link
-(http://127.0.0.1:5000/detections?page=1&per-page=50)
+http://127.0.0.1:5000/detections?page=1&per-page=50
 ```
 
 ## References
