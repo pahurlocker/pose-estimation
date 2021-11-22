@@ -9,7 +9,7 @@ This application performs human pose estimation on a video stream using pre-trai
 ### Python Dependencies
 
 ```bash
-python setup.py install
+pip install -e .
 ```
 
 ### OpenVINO Installation
@@ -18,6 +18,12 @@ Instructions for installing OpenVINO on Linux, Windows, macOS, and Raspian OS
 
 ```link
 https://docs.openvino.ai/latest/openvino_docs_install_guides_installing_openvino_linux.html
+```
+
+## Create SQLite Databased
+
+```bash
+python create_db.py
 ```
 
 ## Run Demo in Window
@@ -54,5 +60,17 @@ python main.py
 ```
 
 ```link
-http://127.0.0.1:5000/?device-name=CPU (or GPU, MYRIAD for Intel Neural Compute Stick 2)
+http://127.0.0.1:5000/?device-name=CPU (or GPU, MYRIAD, or AUTO (default) for Intel Neural Compute Stick 2)
+```
+
+## Detection event API
+
+```link
+http://127.0.0.1:5000/detections?page=1&per-page=50
+```
+
+## Code citation
+
+```link
+https://github.com/openvinotoolkit/openvino_notebooks/tree/main/notebooks/402-pose-estimation-webcam
 ```

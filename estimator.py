@@ -89,14 +89,14 @@ class PoseEstimator(object):
         self.player.stop()
 
     def get_frame(self, jpeg_encoding=False):
-        frame = self._run_pose_estimation()
+        frame, scores = self._run_pose_estimation()
         if jpeg_encoding:
             _, encoded_img = cv2.imencode(
                 ".jpg", frame, params=[cv2.IMWRITE_JPEG_QUALITY, 90]
             )
-            return encoded_img.tobytes()
+            return encoded_img.tobytes(), scores
         else:
-            return frame
+            return frame, scores
 
     def _pool2d(self, A, kernel_size, stride, padding, pool_mode="max"):
         # Padding
@@ -154,13 +154,27 @@ class PoseEstimator(object):
             return img
 
         img_limbs = np.copy(img)
+        pose_counter = 1
         for pose in poses:
             points = pose[:, :2].astype(np.int32)
             points_scores = pose[:, 2]
             # Draw joints.
+            joint_counter = 0
             for i, (p, v) in enumerate(zip(points, points_scores)):
                 if v > point_score_threshold:
                     cv2.circle(img, tuple(p), 1, colors[i], 2)
+                    if joint_counter == 0:
+                        cv2.putText(
+                            img_limbs,
+                            f"{pose_counter}",
+                            tuple(p),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            1.5,
+                            (0, 255, 0),
+                            3,
+                            cv2.LINE_AA,
+                        )
+                        joint_counter += 1
             # Draw limbs.
             for i, j in skeleton:
                 if (
@@ -174,6 +188,7 @@ class PoseEstimator(object):
                         color=colors[j],
                         thickness=4,
                     )
+            pose_counter += 1
         cv2.addWeighted(img, 0.4, img_limbs, 0.6, 0, dst=img)
         return img
 
@@ -221,8 +236,18 @@ class PoseEstimator(object):
             cv2.FONT_HERSHEY_SIMPLEX,
             f_width / 1000,
             (0, 0, 255),
-            1,
+            2,
+            cv2.LINE_AA,
+        )
+        cv2.putText(
+            frame,
+            f"People Detected: {len(scores)}",
+            (20, 70),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            f_width / 1000,
+            (0, 0, 255),
+            2,
             cv2.LINE_AA,
         )
 
-        return frame
+        return frame, scores

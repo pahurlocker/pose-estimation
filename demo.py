@@ -19,7 +19,7 @@ from estimator import PoseEstimator
 def main(device_name, video_url):
     estimator = PoseEstimator(device_name=device_name, video_url=video_url)
     while True:
-        frame = estimator.get_frame()
+        frame, scores = estimator.get_frame()
         title = "Press ESC to Exit"
         cv2.namedWindow(title, cv2.WINDOW_GUI_NORMAL | cv2.WINDOW_AUTOSIZE)
         cv2.imshow(title, frame)
