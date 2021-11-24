@@ -41,6 +41,8 @@ Usage: demo.py [OPTIONS]
 Options:
   --device-name TEXT  device to run the network on, CPU, GPU, or MYRIAD.
                       Default is CPU
+  --precision TEXT    model precision FP16-INT8, FP16, or FP32. Default is
+                      FP16-INT8
   --video-url TEXT    use video instead of video camera, try
                       https://github.com/intel-iot-devkit/sample-
                       videos/blob/master/store-aisle-detection.mp4?raw=true.

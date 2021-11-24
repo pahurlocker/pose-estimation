@@ -2,6 +2,7 @@ import numpy as np
 
 # Obtained from https://github.com/openvinotoolkit/openvino_notebooks/tree/main/notebooks/402-pose-estimation-webcam
 
+
 class OpenPoseDecoder:
 
     BODY_PARTS_KPT_IDS = (

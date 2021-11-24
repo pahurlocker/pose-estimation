@@ -1,7 +1,7 @@
-import cv2
 import collections
 import time
 
+import cv2
 import numpy as np
 from numpy.lib.stride_tricks import as_strided
 from openvino import inference_engine as ie
@@ -9,8 +9,7 @@ from openvino import inference_engine as ie
 from decoder import OpenPoseDecoder
 from player import VideoPlayer
 
-model_path = f"models/human-pose-estimation-0001.xml"
-model_weights_path = f"models/human-pose-estimation-0001.bin"
+import imutils
 
 colors = (
     (255, 0, 0),
@@ -56,22 +55,46 @@ default_skeleton = (
 
 
 class PoseEstimator(object):
-    def __init__(self, device_name="AUTO", video_url=""):
+    def __init__(self, device_name="AUTO", precision="FP16-INT8", video_url=""):
+        hp_model_path = f"models/hp/{precision}/human-pose-estimation-0001.xml"
+        hp_model_weights_path = f"models/hp/{precision}/human-pose-estimation-0001.bin"
+        pc_model_path = f"models/pd/person-detection-retail-0013.xml"
+        pc_model_weights_path = f"models/pd/person-detection-retail-0013.bin"
+
         # initialize inference engine
         ie_core = ie.IECore()
-        # read the network and corresponding weights from file
-        net = ie_core.read_network(model=model_path, weights=model_weights_path)
+        # read the network and corresponding weights from file for pose estimation
+        hp_net = ie_core.read_network(
+            model=hp_model_path, weights=hp_model_weights_path
+        )
         # load the model on the CPU (you can use GPU or MYRIAD as well)
-        self.exec_net = ie_core.load_network(net, device_name)
+        self.hp_exec_net = ie_core.load_network(hp_net, device_name)
 
         # get input and output names of nodes
-        self.input_key = list(self.exec_net.input_info)[0]
-        self.output_keys = list(self.exec_net.outputs.keys())
+        self.hp_input_key = list(self.hp_exec_net.input_info)[0]
+        self.hp_output_keys = list(self.hp_exec_net.outputs.keys())
 
         # get input size
-        self.height, self.width = self.exec_net.input_info[
-            self.input_key
+        self.height, self.width = self.hp_exec_net.input_info[
+            self.hp_input_key
         ].tensor_desc.dims[2:]
+
+        # read the network and corresponding weights from file for people counter
+        pc_net = ie_core.read_network(
+            model=pc_model_path, weights=pc_model_weights_path
+        )
+        # load the model on the CPU (you can use GPU or MYRIAD as well)
+        self.pc_exec_net = ie_core.load_network(pc_net, device_name)
+
+        # get input and output names of nodes
+        self.pc_input_key = list(self.pc_exec_net.input_info)[0]
+        self.pc_output_keys = list(self.pc_exec_net.outputs.keys())
+
+        # get input size
+        self.pc_height, self.pc_width = self.pc_exec_net.input_info[
+            self.pc_input_key
+        ].tensor_desc.dims[2:]
+
         if video_url == "":
             source = 0
         else:
@@ -89,7 +112,8 @@ class PoseEstimator(object):
         self.player.stop()
 
     def get_frame(self, jpeg_encoding=False):
-        frame, scores = self._run_pose_estimation()
+        frame, scores = self._run_estimation()
+        # _, counter = self.ssd_out()
         if jpeg_encoding:
             _, encoded_img = cv2.imencode(
                 ".jpg", frame, params=[cv2.IMWRITE_JPEG_QUALITY, 90]
@@ -126,9 +150,9 @@ class PoseEstimator(object):
         return heatmaps * (heatmaps == pooled_heatmaps)
 
     # get poses from results
-    def _process_results(self, img, results):
-        pafs = results[self.output_keys[0]]
-        heatmaps = results[self.output_keys[1]]
+    def _process_human_pose_results(self, img, results):
+        pafs = results[self.hp_output_keys[0]]
+        heatmaps = results[self.hp_output_keys[1]]
 
         pooled_heatmaps = np.array(
             [
@@ -142,12 +166,19 @@ class PoseEstimator(object):
 
         # decode poses
         poses, scores = self.decoder(heatmaps, nms_heatmaps, pafs)
-        output_shape = self.exec_net.outputs[self.output_keys[0]].shape
+        output_shape = self.hp_exec_net.outputs[self.hp_output_keys[0]].shape
         output_scale = img.shape[1] / output_shape[3], img.shape[0] / output_shape[2]
         # multiply coordinates by scaling factor
         poses[:, :, :2] *= output_scale
 
         return poses, scores
+
+    def _process_people_counter_results(self, result):
+        current_count = 0
+        for obj in result["detection_out"][0][0]:
+            if obj[2] > 0.4:
+                current_count = current_count + 1
+        return current_count
 
     def _draw_poses(self, img, poses, point_score_threshold, skeleton=default_skeleton):
         if poses.size == 0:
@@ -192,7 +223,7 @@ class PoseEstimator(object):
         cv2.addWeighted(img, 0.4, img_limbs, 0.6, 0, dst=img)
         return img
 
-    def _run_pose_estimation(self):
+    def _run_estimation(self):
         processing_times = collections.deque()
         # grab the frame
         frame = self.player.next()
@@ -213,10 +244,20 @@ class PoseEstimator(object):
         # measure processing time
         start_time = time.time()
         # get results
-        results = self.exec_net.infer(inputs={self.input_key: input_img})
+        results = self.hp_exec_net.infer(inputs={self.hp_input_key: input_img})
+
+        pc_input_img = cv2.resize(
+            frame, (self.pc_width, self.pc_height), interpolation=cv2.INTER_AREA
+        )
+        # create batch of images (size = 1)
+        pc_input_img = pc_input_img.transpose(2, 0, 1)[np.newaxis, ...]
+
+        pc_results = self.pc_exec_net.infer(inputs={self.pc_input_key: pc_input_img})
+
         stop_time = time.time()
         # get poses from network results
-        poses, scores = self._process_results(frame, results)
+        people_counter = self._process_people_counter_results(pc_results)
+        poses, scores = self._process_human_pose_results(frame, results)
 
         # draw poses on a frame
         frame = self._draw_poses(frame, poses, 0.1)
@@ -241,7 +282,7 @@ class PoseEstimator(object):
         )
         cv2.putText(
             frame,
-            f"People Detected: {len(scores)}",
+            f"People Detected: {people_counter}",
             (20, 70),
             cv2.FONT_HERSHEY_SIMPLEX,
             f_width / 1000,
