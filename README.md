@@ -2,7 +2,7 @@
 
 ## Overview
 
-This application performs multi-person 2D human pose estimation on video streams using a pre-trained human pose estimation model that is deployed with the OpenVINO toolkit. The model identifies up to 18 points: ears, eyes, nose, neck, shoulders, elbows, wrists, hips, knees, and ankles. The results of the pose estimation prediction are rendered in the application in real-time on a camera feed or pre-recorded video. In addition to the pose estimation, the inference time, number of people in the video, and the order of inference for each person are overlaid on the video.
+This application performs multi-person 2D human pose estimation and person detection on video streams using a human pose estimation model and a person detection model that are deployed with the OpenVINO toolkit. The pose estimation model identifies up to 18 points: ears, eyes, nose, neck, shoulders, elbows, wrists, hips, knees, and ankles. The results of the pose estimation and person detection predictions are rendered in the application in real-time on a camera feed or pre-recorded video. In addition to the pose estimation, the inference time, number of people in the video, and the order of inference for each person are overlaid on the video.
 
 People entering and exiting the video feed are saved in a database as a series of events that can be accessed via a JSON API. The application can be run on a CPU, GPU, or the Intel Neural Compute Stick 2 via the command line or a Flask-based web application. The web-based interface allows end users to toggle between a real-time camera feed and a pre-recorded demo video.
 
@@ -10,6 +10,9 @@ People entering and exiting the video feed are saved in a database as a series o
 
 The model is a multi-person 2D pose estimation network that uses a tuned MobileNet V1 as the feature extractor. The model is based on the OpenPose approach and was originally built using the Caffe framework. OpenPose is the first real-time model to jointly detect multiple body parts. The model has two outputs, PAF and a keypoint heatmap. The coordinates in the heatmap are scaled and used for the pose overlay frame by frame.
 
+### Person Detection Model
+
+The model is developed for pedestrian detection in retail scenarios. It is based on a MobileNetV2-like backbone that includes depth-wise convolutions (single convolution filter per input channel) to reduce computation for the 3x3 convolution block. It was also originally built using the Caffe framework. The model outputs the confidence for the prediction and bounding box coordinates. The application counts any result above a .4 confidence value as a person.
 
 ## Setup
 
