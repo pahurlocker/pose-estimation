@@ -58,8 +58,8 @@ class PoseEstimator(object):
     def __init__(self, device_name="AUTO", precision="FP16-INT8", video_url=""):
         hp_model_path = f"models/hp/{precision}/human-pose-estimation-0001.xml"
         hp_model_weights_path = f"models/hp/{precision}/human-pose-estimation-0001.bin"
-        pc_model_path = f"models/pd/person-detection-retail-0013.xml"
-        pc_model_weights_path = f"models/pd/person-detection-retail-0013.bin"
+        pc_model_path = f"models/pd/{precision}/person-detection-retail-0013.xml"
+        pc_model_weights_path = f"models/pd/{precision}/person-detection-retail-0013.bin"
 
         # initialize inference engine
         ie_core = ie.IECore()
